@@ -1,5 +1,18 @@
 # AI Cost Quality Decision Lab
 
+## Start here
+
+**Problem:** Compare three hypothetical AI approaches before choosing a pilot.
+
+**What is built:** An independent Python prototype or analysis, with product documents and synthetic data.
+
+**Code to run:** `python3 analyze.py`
+
+**What you will see:** Calculates cost per task, monthly cost, contribution margin, and eligibility; repeats the comparison with doubled review cost.
+
+**Scope:** Runs locally in a terminal. No live customer integration, deployed application, or real AI model call is included.
+
+
 **Complete independent scenario model | AI unit economics and release trade-offs**
 
 ## Decision
@@ -41,3 +54,11 @@ python3 analyze.py
 ```
 
 [View the full product management portfolio](https://github.com/bsaikrishnapm-source/bsaikrishnapm-source)
+
+## Inspect the data in Excel
+
+```bash
+python3 export_data.py --output exports
+```
+
+Creates CSV tables from the bundled synthetic data. The terminal output identifies each table and its row count. For a different JSON file, add `--input path/to/data.json`. Existing table CSV files in the output directory are replaced. These exports contain scenario inputs, not production results.
