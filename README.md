@@ -4,7 +4,7 @@
 
 **Problem:** Compare three hypothetical AI approaches before choosing a pilot.
 
-**What is built:** An independent Python prototype or analysis, with product documents and synthetic data.
+**What is built:** A configurable Python decision tool with validated scenario inputs, quality and latency gates, sensitivity analysis, and CSV result exports.
 
 **Code to run:** `python3 analyze.py`
 
@@ -62,3 +62,35 @@ python3 export_data.py --output exports
 ```
 
 Creates CSV tables from the bundled synthetic data. The terminal output identifies each table and its row count. For a different JSON file, add `--input path/to/data.json`. Existing table CSV files in the output directory are replaced. These exports contain scenario inputs, not production results.
+
+## Explore a product decision
+
+Change assumptions without editing the code:
+
+```bash
+python3 analyze.py --monthly-tasks 20000 --review-cost 0.40 --csv exports/scenarios.csv
+python3 analyze.py --minimum-success-rate 0.99
+python3 analyze.py --maximum-p95-seconds 4 --revenue-per-task 0.15
+```
+
+The first scenario compares baseline and doubled review cost at your chosen volume. The second returns **NONE** because no fictional variant meets the 99% success floor. The third relaxes latency and changes the revenue assumption. These are decision exercises, not measured vendor performance.
+
+| Option | Meaning | Validation |
+| --- | --- | --- |
+| `--monthly-tasks` | Monthly task volume | Non-negative integer |
+| `--review-cost` | Cost of one human review | Finite, non-negative |
+| `--revenue-per-task` | Revenue for each task | Finite, non-negative; zero yields N/A margin |
+| `--minimum-success-rate` | Quality floor | Fraction from 0 to 1 |
+| `--maximum-p95-seconds` | Latency ceiling | Finite, non-negative |
+| `--input` | Alternative scenario JSON | Same schema as data.json; unique variant names |
+| `--csv` | Results file | Six rows for default variants; replaces the chosen file |
+
+CSV results include variant assumptions, effective review cost, volume, release gates, eligibility reasons and the recommended option. Recommendations minimize variable cost **among variants passing both gates**. Equal costs use the variant name as a deterministic tie-breaker. No qualifying variant means no recommendation. Negative contribution margins remain visible.
+
+## Verification
+
+```bash
+python3 -m unittest -v
+```
+
+Seven automated tests cover baseline and sensitivity results, exact gate boundaries, no feasible option, zero revenue/volume, invalid inputs, command-line errors and CSV auditability. The bundled baseline remains $270 monthly hybrid variable cost and 73% contribution margin; doubled review cost gives $430 and 57%.
