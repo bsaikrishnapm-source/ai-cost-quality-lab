@@ -1,5 +1,20 @@
 # AI Cost Quality Decision Lab
 
+## Interactive product demo — implemented
+
+**AI Economics:** Browser controls for volume, human review cost, revenue, quality and latency gates; eligibility reasons; contribution margins; scenario snapshots; CSV and JSON exports.
+
+### Open the product
+
+1. On this repository, select **Code → Download ZIP**.
+2. Extract the ZIP folder.
+3. Open **demo/index.html** in your browser.
+
+No installation, API key or login is required for the demo. GitHub's Code tab displays source; it does not run HTML applications. Keep the demo folder's files together. This is a local browser experience, not a hosted service.
+
+[Demo walkthrough and architecture](DEMO_GUIDE.md) · [Browser source](demo/index.html) · [Decision logic](demo/engine.js) · [Verification](VALIDATION.md)
+
+
 ## Start here
 
 **Problem:** Compare three hypothetical AI approaches before choosing a pilot.
@@ -10,7 +25,7 @@
 
 **What you will see:** Calculates cost per task, monthly cost, contribution margin, and eligibility; repeats the comparison with doubled review cost.
 
-**Scope:** Runs locally in a terminal. No live customer integration, deployed application, or real AI model call is included.
+**Scope:** Includes a local browser demo plus the original Python command-line analysis. No live customer integration, hosted deployment, or real AI model call is included.
 
 
 **Complete independent scenario model | AI unit economics and release trade-offs**
@@ -94,3 +109,4 @@ python3 -m unittest -v
 ```
 
 Seven automated tests cover baseline and sensitivity results, exact gate boundaries, no feasible option, zero revenue/volume, invalid inputs, command-line errors and CSV auditability. The bundled baseline remains $270 monthly hybrid variable cost and 73% contribution margin; doubled review cost gives $430 and 57%.
+
