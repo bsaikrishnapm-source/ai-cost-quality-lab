@@ -1,5 +1,15 @@
 # AI Cost Quality Decision Lab
 
+## Product decision at a glance
+
+**User need:** Choose an AI approach with acceptable quality, latency and variable cost.
+
+**Decision:** Gate on quality and latency first, then compare the cost of eligible options.
+
+**Evidence:** At 10,000 tasks/month, the hypothetical hybrid option meets both gates at $270/month and 73% contribution margin. Doubling review cost yields $430 and 57%. These are modeled assumptions, not vendor benchmarks.
+
+**Inspect:** [Decision memo](PRODUCT.md) · [Change assumptions in the demo](DEMO_GUIDE.md) · [Validation](VALIDATION.md).
+
 ## Interactive product demo — implemented
 
 **AI Economics:** Browser controls for volume, human review cost, revenue, quality and latency gates; eligibility reasons; contribution margins; scenario snapshots; CSV and JSON exports.
