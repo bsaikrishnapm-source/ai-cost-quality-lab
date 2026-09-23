@@ -1,5 +1,7 @@
 # AI Cost Quality Decision Lab
 
+**Latest iteration:** [Guided scenarios, comparison history and export-safety fixes](RELEASE_NOTES.md) · [Planned usability study](USER_TEST_PLAN.md). Run `node --test test_demo.cjs test_ui.cjs` for the 12 JavaScript checks.
+
 ## Product decision at a glance
 
 **User need:** Choose an AI approach with acceptable quality, latency and variable cost.

@@ -6,7 +6,7 @@ function field(id,label,value,options){
  const wrap=el("label");wrap.append(el("span",label));let input;
  if(options){input=el("select");for(const item of options){const o=el("option",typeof item==="string"?item:item[1]);o.value=typeof item==="string"?item:item[0];input.append(o);}}
  else{input=el("input");input.type=typeof value==="number"?"number":"text";if(input.type==="number"){input.step="any";input.min="0";}}
- input.id=id;input.value=value;wrap.append(input);$("controls").append(wrap);return input;
+ input.id=id;input.value=value;input.oninput=()=>{lastResult=null;$("error").textContent="Inputs changed. Compare scenarios before saving or exporting.";};wrap.append(input);$("controls").append(wrap);return input;
 }
 function button(label,fn,secondary=false){const b=el("button",label,secondary?"secondary":"");b.type="button";b.onclick=()=>{try{$("error").textContent="";fn();}catch(e){$("error").textContent=e.message;}};$("actions").append(b);return b;}
 function metric(label,value){const c=el("div",undefined,"metric");c.append(el("span",label),el("strong",String(value)));$("metrics").append(c);}
@@ -32,14 +32,27 @@ let lastResult=null;
 
 field("volume","Monthly tasks",10000);field("review","Cost per human review (USD)",.2);field("revenue","Revenue per task (USD)",.1);
 field("quality","Minimum success rate",.9);field("latency","Maximum p95 latency (seconds)",3);field("multiplier","Review-cost multiplier",1);
-function run(){clear();const data=JSON.parse(JSON.stringify(DEMO_DATA));Object.assign(data,{monthly_tasks:num("volume"),review_cost:num("review"),revenue_per_task:num("revenue"),minimum_success_rate:num("quality"),maximum_p95_seconds:num("latency")});
+function run(){lastResult=null;clear();const data=JSON.parse(JSON.stringify(DEMO_DATA));Object.assign(data,{monthly_tasks:num("volume"),review_cost:num("review"),revenue_per_task:num("revenue"),minimum_success_rate:num("quality"),maximum_p95_seconds:num("latency")});
  const result=Product.evaluate(data,num("multiplier"));lastResult=result;const best=result.rows.find(r=>r.name===result.recommendation);
  metric("Recommended variant",result.recommendation||"None");metric("Monthly variable cost",best?money(best.monthly_variable_cost):"—");metric("Contribution margin",best?pct(best.contribution_margin):"—");metric("Eligible variants",result.rows.filter(r=>r.eligible).length);
  table("Quality-gated comparison",result.rows.map(r=>({...r,cost_per_task:"$"+r.cost_per_task.toFixed(3),monthly_variable_cost:money(r.monthly_variable_cost),contribution_margin:pct(r.contribution_margin),success_rate:pct(r.success_rate),eligible:r.eligible?"Eligible":"Blocked"})),[["name","Variant"],["success_rate","Success"],["p95_seconds","p95 seconds"],["cost_per_task","Cost / task"],["monthly_variable_cost","Monthly cost"],["contribution_margin","Margin"],["eligible","Gate"],["reason","Rationale"]]);
  message("All vendor labels, prices, success and latency figures are fictional. The recommendation minimizes variable cost among options passing both gates. Margin excludes fixed costs, so it is not a profit forecast.");
  if(!best)message("No option passes both gates. Change the scope or evaluate another option; lowering cost alone does not resolve a failed quality gate.");
+ renderHistory();
 }
 button("Compare scenarios",run);button("Export result CSV",()=>{if(!lastResult)throw new Error("Run a comparison first");download("cost-quality-results.csv",csv(lastResult.rows.map(r=>({...r,monthly_tasks:lastResult.assumptions.monthly_tasks,review_cost:lastResult.assumptions.review_cost,review_multiplier:lastResult.assumptions.review_multiplier,revenue_per_task:lastResult.assumptions.revenue_per_task,minimum_success_rate:lastResult.assumptions.minimum_success_rate,maximum_p95_seconds:lastResult.assumptions.maximum_p95_seconds}))),"text/csv");},true);run();
 
-button("Save comparison snapshot",()=>{if(!lastResult)throw new Error("Run the scenario first");saveComparison("Scenario "+(copies.length+1),lastResult);table("Saved comparisons",copies.map(c=>({label:c.label,time:c.at})),[["label","Snapshot"],["time","Captured (UTC)"]]);},true);
-button("Download evidence JSON",()=>download("product-evidence.json",{current:lastResult,comparisons:copies,scope:"Independent prototype; synthetic data only"}),true);
+let scenarioNumber=0;
+function renderHistory(){
+ const previous=document.getElementById("comparison-history");if(previous)previous.remove();
+ if(!copies.length)return;
+ table("Saved comparisons",copies.map(c=>{const best=c.result.rows.find(r=>r.name===c.result.recommendation);return {label:c.label,variant:c.result.recommendation||"None",cost:best?money(best.monthly_variable_cost):"—",margin:best?pct(best.contribution_margin):"—",quality:pct(c.result.assumptions.minimum_success_rate),review:money(c.result.assumptions.review_cost*c.result.assumptions.review_multiplier)};}),[["label","Scenario"],["variant","Recommendation"],["cost","Monthly cost"],["margin","Margin"],["quality","Quality floor"],["review","Effective review cost"]]);
+ $("results").lastElementChild.id="comparison-history";
+}
+button("Save comparison snapshot",()=>{if(!lastResult)throw new Error("Run the scenario first");saveComparison("Scenario "+(++scenarioNumber),lastResult);renderHistory();},true);
+button("Download evidence JSON",()=>{if(!lastResult)throw new Error("Run the scenario first");download("product-evidence.json",{current:lastResult,comparisons:copies,scope:"Independent prototype; synthetic data only"});},true);
+function preset(overrides){const values={volume:10000,review:.2,revenue:.1,quality:.9,latency:3,multiplier:1,...overrides};for(const [id,value]of Object.entries(values))$(id).value=value;run();}
+button("Load baseline",()=>preset({}),true);
+button("Try doubled review cost",()=>preset({multiplier:2}),true);
+button("Try 99% quality gate",()=>preset({quality:.99}),true);
+button("Clear saved comparisons",()=>{copies.length=0;$("saved").textContent="No comparison snapshots saved";renderHistory();},true);
